@@ -1,18 +1,10 @@
 use std::collections::HashMap;
-use std::error::Error;
 use std::path::PathBuf;
 use std::process::Command;
 
 use console::Style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug)]
-#[allow(dead_code)]
-struct Cli {
-    username: String,
-    // repos: Vec<usize>,
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(dead_code)]
@@ -48,7 +40,7 @@ fn remove_whitespace(s: &str) -> String {
     s.split_whitespace().collect()
 }
 
-async fn init() -> Result<Option<Cli>, Box<dyn Error>> {
+async fn init() {
     let theme = ColorfulTheme {
         values_style: Style::new().yellow().dim(),
         ..ColorfulTheme::default()
@@ -67,7 +59,8 @@ async fn init() -> Result<Option<Cli>, Box<dyn Error>> {
                 }
             }
         })
-        .interact_text()?;
+        .interact_text()
+        .unwrap();
 
     let mut repo_name_clone_url_map: HashMap<String, String> = HashMap::new();
 
@@ -101,7 +94,8 @@ async fn init() -> Result<Option<Cli>, Box<dyn Error>> {
     let clone_to_dir: String = Input::with_theme(&theme)
         .with_prompt("Directory to clone to")
         .default(".".to_string())
-        .interact_text()?;
+        .interact_text()
+        .unwrap();
 
     let proper_clone_to_dir = PathBuf::from(&clone_to_dir);
 
@@ -119,10 +113,6 @@ async fn init() -> Result<Option<Cli>, Box<dyn Error>> {
             None => println!("Filler"),
         }
     }
-
-    Ok(Some(Cli {
-        username: username.clone(),
-    }))
 }
 
 #[tokio::main]
