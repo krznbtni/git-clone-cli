@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "bungcip.better-toml",
+    "streetsidesoftware.code-spell-checker",
+    "yzhang.markdown-all-in-one",
+    "rust-lang.rust-analyzer"
+  ]
+}
