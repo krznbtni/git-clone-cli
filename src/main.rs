@@ -1,9 +1,14 @@
+/// Internal (standard)
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 
+/// Mine
+mod exitcode;
+
+/// External (not mine)
 use console::Style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
 use regex::Regex;
@@ -230,5 +235,5 @@ async fn main() {
     let repo_names = repo_map.keys().cloned().collect::<Vec<String>>();
     let repos_to_clone = prompt_repos_to_clone(&theme, &repo_names);
 
-    // init(&theme, &repos).await;
+    std::process::exit(exitcode::OK)
 }
