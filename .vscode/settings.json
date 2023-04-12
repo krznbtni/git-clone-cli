@@ -2,6 +2,8 @@
   "cSpell.words": [
     "clippy",
     "dialoguer",
+    "exitcode",
+    "NOUSER",
     "reqwest",
     "rustfmt",
     "thiserror"
