@@ -1,7 +1,9 @@
 {
   "cSpell.words": [
+    "clippy",
     "dialoguer",
     "reqwest",
+    "rustfmt",
     "thiserror"
   ]
 }

@@ -4,10 +4,32 @@ use std::process::Command;
 
 use console::Style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
 #[allow(dead_code)]
+fn remove_whitespace(s: &str) -> String {
+    s.split_whitespace().collect()
+}
+
+fn validate_username(s: &str) -> bool {
+    // r: a raw string.
+    // A raw string is just like a regular string,
+    // except it does not process any escape sequences.
+    // For example, "\\d" is the same expression as r"\d".
+    let re = Regex::new(r"^[0-9A-Za-z_.-]+$").unwrap();
+    re.is_match(s)
+}
+
+#[test]
+fn validate_usernames() {
+    let valid_username = "0valid_.-";
+    let invalid_username = " invalid_.-/¤";
+    assert_eq!(validate_username(valid_username), true);
+    assert_eq!(validate_username(invalid_username), false);
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 struct GhRepoRes {
     name: String,
     clone_url: String,
@@ -36,10 +58,6 @@ async fn fetch_gh_repos(username: &str) -> Result<Vec<GhRepoRes>, reqwest::Error
     }
 }
 
-fn remove_whitespace(s: &str) -> String {
-    s.split_whitespace().collect()
-}
-
 async fn init() {
     let theme = ColorfulTheme {
         values_style: Style::new().yellow().dim(),
@@ -50,12 +68,12 @@ async fn init() {
         .with_prompt("GitHub username")
         .validate_with({
             move |input: &String| -> Result<(), &str> {
-                let trimmed = remove_whitespace(input);
+                let valid = validate_username(input);
 
-                if trimmed.is_empty() {
-                    Err("Invalid username.")
-                } else {
+                if valid {
                     Ok(())
+                } else {
+                    Err("Invalid username.")
                 }
             }
         })
