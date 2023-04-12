@@ -132,10 +132,30 @@ fn prompt_username(theme: &ColorfulTheme) -> String {
         .unwrap()
 }
 
-async fn init(theme: &ColorfulTheme, username: &str) {
-    let mut repo_map: HashMap<String, String> = HashMap::new();
+/**
+ * ------------- Iterator Adaptors -------------
+ * A 'map' is an iterator adaptor.
+ * It does not consume the iterator.
+ * It produces different iterators by changing some aspect of the original iterator.
+ * It returns a new iterator that produces the modified items.
+ * It's closure creates a new iterator.
+ *
+ * An iterator adaptor is 'lazy' and _needs_ to be consumed.
+ * To consume the iterator, call the 'collect' method.
+ * The 'collect' method consumes the iterator and collects
+ * the values into a collection data type.
+ */
 
-    let repos = fetch_gh_repos(&username).await;
+fn prompt_repos_to_clone(theme: &ColorfulTheme, repo_names: &Vec<String>) -> Vec<usize> {
+    MultiSelect::with_theme(theme)
+        .with_prompt("Pick repos to clone")
+        .items(&repo_names[..])
+        .interact()
+        .unwrap()
+}
+
+async fn init(theme: &ColorfulTheme, repos: &Result<Vec<GhRepoRes>, reqwest::Error>) {
+    let mut repo_map: HashMap<String, String> = HashMap::new();
     repo_map = match repos {
         Err(..) => panic!("dsads"),
         Ok(x) => x
@@ -197,5 +217,18 @@ async fn main() {
     };
 
     let username = prompt_username(&theme);
-    init(&theme, &username).await;
+    let repos = fetch_gh_repos(&username).await;
+
+    let repo_map: HashMap<String, String> = match repos {
+        Err(..) => panic!("dsads"),
+        Ok(x) => x
+            .into_iter()
+            .map(|repo| (repo.name, repo.clone_url))
+            .collect(),
+    };
+
+    let repo_names = repo_map.keys().cloned().collect::<Vec<String>>();
+    let repos_to_clone = prompt_repos_to_clone(&theme, &repo_names);
+
+    // init(&theme, &repos).await;
 }
