@@ -14,16 +14,21 @@ fn remove_whitespace(s: &str) -> String {
     s.split_whitespace().collect()
 }
 
-fn validate_username(s: &str) -> bool {
+fn is_valid_username(username: &str) -> bool {
     // r: a raw string.
     // A raw string is just like a regular string,
     // except it does not process any escape sequences.
     // For example, "\\d" is the same expression as r"\d".
     let re = Regex::new(r"^[0-9A-Za-z_.-]+$").unwrap();
-    re.is_match(s)
+    re.is_match(username)
 }
 
 #[test]
+fn t_is_valid_username() {
+    assert!(is_valid_username("0valid_.-"));
+    assert!(!is_valid_username(" invalid_.-/¤"));
+}
+
 fn is_valid_directory(path: &Path) -> bool {
     match fs::metadata(path) {
         Err(_) => false,
@@ -81,9 +86,7 @@ async fn init() {
         .with_prompt("GitHub username")
         .validate_with({
             move |input: &String| -> Result<(), &str> {
-                let valid = validate_username(input);
-
-                if valid {
+                if is_valid_username(input) {
                     Ok(())
                 } else {
                     Err("Invalid username.")
