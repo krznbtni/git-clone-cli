@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
     "dialoguer",
-    "reqwest"
+    "reqwest",
+    "thiserror"
   ]
 }
