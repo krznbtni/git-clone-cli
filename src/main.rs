@@ -99,15 +99,13 @@ async fn init() {
     let mut repo_name_clone_url_map: HashMap<String, String> = HashMap::new();
 
     let repos = fetch_gh_repos(&username).await;
-    match repos {
+    repo_name_clone_url_map = match repos {
         Err(..) => panic!("dsads"),
-        Ok(x) => {
-            repo_name_clone_url_map = x
-                .iter()
-                .map(|ss| (ss.name.clone(), ss.clone_url.clone()))
-                .collect();
-        }
-    }
+        Ok(x) => x
+            .iter()
+            .map(|ss| (ss.name.clone(), ss.clone_url.clone()))
+            .collect(),
+    };
 
     let repo_names = repo_name_clone_url_map
         .keys()
