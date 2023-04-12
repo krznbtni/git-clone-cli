@@ -19,6 +19,15 @@ fn validate_username(s: &str) -> bool {
     let re = Regex::new(r"^[0-9A-Za-z_.-]+$").unwrap();
     re.is_match(s)
 }
+
+#[test]
+fn validate_usernames() {
+    let valid_username = "0valid_.-";
+    let invalid_username = " invalid_.-/¤";
+    assert_eq!(validate_username(valid_username), true);
+    assert_eq!(validate_username(invalid_username), false);
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(dead_code)]
 struct GhRepoRes {
@@ -47,10 +56,6 @@ async fn fetch_gh_repos(username: &str) -> Result<Vec<GhRepoRes>, reqwest::Error
         }
         rest => panic!("GitHub response: {}", rest),
     }
-}
-
-fn remove_whitespace(s: &str) -> String {
-    s.split_whitespace().collect()
 }
 
 async fn init() {
