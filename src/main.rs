@@ -76,13 +76,48 @@ async fn fetch_gh_repos(username: &str) -> Result<Vec<GhRepoRes>, reqwest::Error
     }
 }
 
-async fn init() {
-    let theme = ColorfulTheme {
-        values_style: Style::new().yellow().dim(),
-        ..ColorfulTheme::default()
-    };
+/**
+ * ----------------- STRING SLICES -----------------
+ * A string slice is a reference to part of a String.
+ * The type that signifies “string slice” is written as &str.
+ *
+ * **String literals** are slices pointing to that specific point of the binary.
+ *
+ * **String Slices as Parameters:**
+ * - if we have a string slice, we'll be able to pass that into the function directly.
+ * - if we have a String, we can pass a slice of that String or a reference to the String (&var).
+ */
 
-    let username = Input::with_theme(&theme)
+/*
+ * --------------- REFERENCE --------------
+ * The '&'-sign means that it is a REFERENCE.
+ * Unlike a pointer, a reference is guaranteed to point to a valid
+ * value of a particular type for the life of that reference.
+ * This is how we can pass parameters to functions
+ * without having the function take ownership.
+ *
+ * The action of creating a reference is called 'borrowing'.
+ *
+ * References are immutable by default,
+ * meaning that you are not allowed to modify it.
+ * For a reference to be mutable,
+ * its definition must include the 'mut' word (let mut s = String::from("hello")),
+ * and used like (&mut s).
+ * Mutable references big restriction is that you cannot create 2 mutable references to it.
+ *
+ * ... look up data races...
+ *
+ * - At any given time, you can have either one mutable reference or any number of immutable references.
+ * - References must always be valid.
+*/
+
+/**
+ * Ownership, borrowing and slices ensure memory safety at compile time.
+ */
+
+// theme is a reference to a ColorfulTheme
+fn prompt_username(theme: &ColorfulTheme) -> String {
+    Input::with_theme(theme)
         .with_prompt("GitHub username")
         .validate_with({
             move |input: &String| -> Result<(), &str> {
@@ -94,12 +129,14 @@ async fn init() {
             }
         })
         .interact_text()
-        .unwrap();
+        .unwrap()
+}
 
-    let mut repo_name_clone_url_map: HashMap<String, String> = HashMap::new();
+async fn init(theme: &ColorfulTheme, username: &str) {
+    let mut repo_map: HashMap<String, String> = HashMap::new();
 
     let repos = fetch_gh_repos(&username).await;
-    repo_name_clone_url_map = match repos {
+    repo_map = match repos {
         Err(..) => panic!("dsads"),
         Ok(x) => x
             .iter()
@@ -107,12 +144,9 @@ async fn init() {
             .collect(),
     };
 
-    let repo_names = repo_name_clone_url_map
-        .keys()
-        .cloned()
-        .collect::<Vec<String>>();
+    let repo_names = repo_map.keys().cloned().collect::<Vec<String>>();
 
-    let repos_to_clone = MultiSelect::with_theme(&theme)
+    let repos_to_clone = MultiSelect::with_theme(theme)
         .with_prompt("Pick repos to clone")
         .items(&repo_names[..])
         .interact()
@@ -122,7 +156,7 @@ async fn init() {
         panic!("No repos selected. Exiting.")
     }
 
-    let clone_to_dir: String = Input::with_theme(&theme)
+    let clone_to_dir: String = Input::with_theme(theme)
         .with_prompt("Directory to clone to")
         .validate_with({
             move |input: &String| -> Result<(), &str> {
@@ -142,7 +176,7 @@ async fn init() {
     for repo in repos_to_clone {
         let repo_name = &repo_names[repo];
 
-        match repo_name_clone_url_map.get(repo_name) {
+        match repo_map.get(repo_name) {
             Some(clone_url) => {
                 Command::new("git")
                     .args(["clone", clone_url])
@@ -157,5 +191,11 @@ async fn init() {
 
 #[tokio::main]
 async fn main() {
-    init().await;
+    let theme = ColorfulTheme {
+        values_style: Style::new().yellow().dim(),
+        ..ColorfulTheme::default()
+    };
+
+    let username = prompt_username(&theme);
+    init(&theme, &username).await;
 }
