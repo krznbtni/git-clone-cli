@@ -11,3 +11,4 @@
 
 - Allow the User to select from where to clone repositories (GitHub, Gitlab, etc).
 - Figure out how to fetch non-public repositories from for example GitHub (private, organizational).
+  - Will probably require a personal access token. If so, allow the User to configure one.
