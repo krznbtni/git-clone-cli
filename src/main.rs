@@ -124,9 +124,17 @@ async fn init() {
         panic!("No repos selected. Exiting.")
     }
 
-    // TODO 5: give input promp - enter directory to clone repos in
     let clone_to_dir: String = Input::with_theme(&theme)
         .with_prompt("Directory to clone to")
+        .validate_with({
+            move |input: &String| -> Result<(), &str> {
+                if is_valid_directory(Path::new(input)) {
+                    Ok(())
+                } else {
+                    Err("Invalid path.")
+                }
+            }
+        })
         .default(".".to_string())
         .interact_text()
         .unwrap();
