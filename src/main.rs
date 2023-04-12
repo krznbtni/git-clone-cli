@@ -7,6 +7,7 @@ use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+#[allow(dead_code)]
 fn remove_whitespace(s: &str) -> String {
     s.split_whitespace().collect()
 }
@@ -29,7 +30,6 @@ fn validate_usernames() {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[allow(dead_code)]
 struct GhRepoRes {
     name: String,
     clone_url: String,
@@ -68,12 +68,12 @@ async fn init() {
         .with_prompt("GitHub username")
         .validate_with({
             move |input: &String| -> Result<(), &str> {
-                let trimmed = remove_whitespace(input);
+                let valid = validate_username(input);
 
-                if trimmed.is_empty() {
-                    Err("Invalid username.")
-                } else {
+                if valid {
                     Ok(())
+                } else {
+                    Err("Invalid username.")
                 }
             }
         })
