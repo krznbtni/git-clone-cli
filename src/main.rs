@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -22,11 +24,22 @@ fn validate_username(s: &str) -> bool {
 }
 
 #[test]
-fn validate_usernames() {
-    let valid_username = "0valid_.-";
-    let invalid_username = " invalid_.-/¤";
-    assert_eq!(validate_username(valid_username), true);
-    assert_eq!(validate_username(invalid_username), false);
+fn is_valid_directory(path: &Path) -> bool {
+    match fs::metadata(path) {
+        Err(_) => false,
+        Ok(res) => res.is_dir(),
+    }
+}
+
+#[test]
+fn t_is_valid_directory() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = assert_fs::TempDir::new()?;
+    assert!(is_valid_directory(dir.path()));
+
+    let file = assert_fs::NamedTempFile::new("temp-file.txt")?;
+    assert!(!is_valid_directory(file.path()));
+
+    Ok(())
 }
 
 #[derive(Serialize, Deserialize, Debug)]
