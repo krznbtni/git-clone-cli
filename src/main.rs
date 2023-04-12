@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -12,21 +14,37 @@ fn remove_whitespace(s: &str) -> String {
     s.split_whitespace().collect()
 }
 
-fn validate_username(s: &str) -> bool {
+fn is_valid_username(username: &str) -> bool {
     // r: a raw string.
     // A raw string is just like a regular string,
     // except it does not process any escape sequences.
     // For example, "\\d" is the same expression as r"\d".
     let re = Regex::new(r"^[0-9A-Za-z_.-]+$").unwrap();
-    re.is_match(s)
+    re.is_match(username)
 }
 
 #[test]
-fn validate_usernames() {
-    let valid_username = "0valid_.-";
-    let invalid_username = " invalid_.-/¤";
-    assert_eq!(validate_username(valid_username), true);
-    assert_eq!(validate_username(invalid_username), false);
+fn t_is_valid_username() {
+    assert!(is_valid_username("0valid_.-"));
+    assert!(!is_valid_username(" invalid_.-/¤"));
+}
+
+fn is_valid_directory(path: &Path) -> bool {
+    match fs::metadata(path) {
+        Err(_) => false,
+        Ok(res) => res.is_dir(),
+    }
+}
+
+#[test]
+fn t_is_valid_directory() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = assert_fs::TempDir::new()?;
+    assert!(is_valid_directory(dir.path()));
+
+    let file = assert_fs::NamedTempFile::new("temp-file.txt")?;
+    assert!(!is_valid_directory(file.path()));
+
+    Ok(())
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -68,9 +86,7 @@ async fn init() {
         .with_prompt("GitHub username")
         .validate_with({
             move |input: &String| -> Result<(), &str> {
-                let valid = validate_username(input);
-
-                if valid {
+                if is_valid_username(input) {
                     Ok(())
                 } else {
                     Err("Invalid username.")
@@ -83,15 +99,13 @@ async fn init() {
     let mut repo_name_clone_url_map: HashMap<String, String> = HashMap::new();
 
     let repos = fetch_gh_repos(&username).await;
-    match repos {
+    repo_name_clone_url_map = match repos {
         Err(..) => panic!("dsads"),
-        Ok(x) => {
-            repo_name_clone_url_map = x
-                .iter()
-                .map(|ss| (ss.name.clone(), ss.clone_url.clone()))
-                .collect();
-        }
-    }
+        Ok(x) => x
+            .iter()
+            .map(|ss| (ss.name.clone(), ss.clone_url.clone()))
+            .collect(),
+    };
 
     let repo_names = repo_name_clone_url_map
         .keys()
@@ -108,9 +122,17 @@ async fn init() {
         panic!("No repos selected. Exiting.")
     }
 
-    // TODO 5: give input promp - enter directory to clone repos in
     let clone_to_dir: String = Input::with_theme(&theme)
         .with_prompt("Directory to clone to")
+        .validate_with({
+            move |input: &String| -> Result<(), &str> {
+                if is_valid_directory(Path::new(input)) {
+                    Ok(())
+                } else {
+                    Err("Invalid path.")
+                }
+            }
+        })
         .default(".".to_string())
         .interact_text()
         .unwrap();
