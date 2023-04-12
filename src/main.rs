@@ -4,10 +4,20 @@ use std::process::Command;
 
 use console::Style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 fn remove_whitespace(s: &str) -> String {
     s.split_whitespace().collect()
+}
+
+fn validate_username(s: &str) -> bool {
+    // r: a raw string.
+    // A raw string is just like a regular string,
+    // except it does not process any escape sequences.
+    // For example, "\\d" is the same expression as r"\d".
+    let re = Regex::new(r"^[0-9A-Za-z_.-]+$").unwrap();
+    re.is_match(s)
 }
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(dead_code)]
