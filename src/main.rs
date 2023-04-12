@@ -6,6 +6,9 @@ use console::Style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
 use serde::{Deserialize, Serialize};
 
+fn remove_whitespace(s: &str) -> String {
+    s.split_whitespace().collect()
+}
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(dead_code)]
 struct GhRepoRes {
