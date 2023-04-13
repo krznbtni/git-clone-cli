@@ -47,7 +47,6 @@ async fn fetch_gh_repos(username: &str) -> Result<Vec<GhRepoRes>, reqwest::Error
     }
 }
 
-// theme is a reference to a ColorfulTheme
 fn prompt_username(theme: &ColorfulTheme) -> String {
     Input::with_theme(theme)
         .with_prompt("GitHub username")
@@ -69,6 +68,23 @@ fn prompt_repos_to_clone(theme: &ColorfulTheme, repo_names: &Vec<String>) -> Vec
         .with_prompt("Pick repos to clone")
         .items(&repo_names[..])
         .interact()
+        .unwrap()
+}
+
+fn prompt_destination_dir(theme: &ColorfulTheme) -> String {
+    Input::with_theme(theme)
+        .with_prompt("Directory to clone to")
+        .validate_with({
+            move |input: &String| -> Result<(), &str> {
+                if validation::is_valid_directory(Path::new(input)) {
+                    Ok(())
+                } else {
+                    Err("Invalid path.")
+                }
+            }
+        })
+        .default(".".to_string())
+        .interact_text()
         .unwrap()
 }
 
@@ -146,7 +162,9 @@ async fn main() {
     };
 
     let repo_names = repo_map.keys().cloned().collect::<Vec<String>>();
-    let repos_to_clone = prompt_repos_to_clone(&theme, &repo_names);
+    let selected_repos = prompt_repos_to_clone(&theme, &repo_names);
+    let destination_dir = prompt_destination_dir(&theme);
+    let destination_dir_pathbuf = PathBuf::from(&destination_dir);
 
     std::process::exit(exitcode::OK)
 }
