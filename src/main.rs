@@ -6,45 +6,16 @@ use std::path::PathBuf;
 /// Mine
 mod exitcode;
 mod git;
+mod github;
 mod validation;
 
 /// External (not mine)
 use console::Style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
-use serde::{Deserialize, Serialize};
 
 #[allow(dead_code)]
 fn remove_whitespace(s: &str) -> String {
     s.split_whitespace().collect()
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct GhRepoRes {
-    name: String,
-    clone_url: String,
-}
-
-async fn fetch_gh_repos(username: &str) -> Result<Vec<GhRepoRes>, reqwest::Error> {
-    let url = format!("https://api.github.com/users/{}/repos", username);
-
-    let client = reqwest::Client::new();
-    let res = client
-        .get(url)
-        .header("ACCEPT", "application/vnd.github+json")
-        .header("User-Agent", username)
-        .send()
-        .await?;
-
-    match res.status() {
-        reqwest::StatusCode::OK => Ok(res.json::<Vec<GhRepoRes>>().await?),
-        reqwest::StatusCode::BAD_REQUEST => {
-            panic!("Bad request")
-        }
-        reqwest::StatusCode::NOT_FOUND => {
-            panic!("GitHub user not found")
-        }
-        rest => panic!("GitHub response: {}", rest),
-    }
 }
 
 fn prompt_username(theme: &ColorfulTheme) -> String {
@@ -96,7 +67,7 @@ async fn main() {
     };
 
     let username = prompt_username(&theme);
-    let repos = fetch_gh_repos(&username).await;
+    let repos = github::fetch_user_repos(&username).await;
 
     let repo_map: HashMap<String, String> = match repos {
         Err(..) => panic!("dsads"),
