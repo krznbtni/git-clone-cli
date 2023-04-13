@@ -2,10 +2,10 @@
 use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
-use std::process::Command;
 
 /// Mine
 mod exitcode;
+mod git;
 mod validation;
 
 /// External (not mine)
@@ -88,14 +88,6 @@ fn prompt_destination_dir(theme: &ColorfulTheme) -> String {
         .unwrap()
 }
 
-fn git_clone(clone_url: &str, destination_dir: &PathBuf) {
-    Command::new("git")
-        .args(["clone", clone_url])
-        .current_dir(destination_dir)
-        .spawn()
-        .expect("Error: failed to clone");
-}
-
 #[tokio::main]
 async fn main() {
     let theme = ColorfulTheme {
@@ -123,7 +115,7 @@ async fn main() {
         let repo_name = &repo_names[selected_repo];
 
         if let Some(clone_url) = repo_map.get(repo_name) {
-            git_clone(&clone_url, &destination_dir_pathbuf)
+            git::clone(&clone_url, &destination_dir_pathbuf)
         }
     }
 
