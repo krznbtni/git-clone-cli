@@ -81,45 +81,6 @@ async fn fetch_gh_repos(username: &str) -> Result<Vec<GhRepoRes>, reqwest::Error
     }
 }
 
-/**
- * ----------------- STRING SLICES -----------------
- * A string slice is a reference to part of a String.
- * The type that signifies “string slice” is written as &str.
- *
- * **String literals** are slices pointing to that specific point of the binary.
- *
- * **String Slices as Parameters:**
- * - if we have a string slice, we'll be able to pass that into the function directly.
- * - if we have a String, we can pass a slice of that String or a reference to the String (&var).
- */
-
-/*
- * --------------- REFERENCE --------------
- * The '&'-sign means that it is a REFERENCE.
- * Unlike a pointer, a reference is guaranteed to point to a valid
- * value of a particular type for the life of that reference.
- * This is how we can pass parameters to functions
- * without having the function take ownership.
- *
- * The action of creating a reference is called 'borrowing'.
- *
- * References are immutable by default,
- * meaning that you are not allowed to modify it.
- * For a reference to be mutable,
- * its definition must include the 'mut' word (let mut s = String::from("hello")),
- * and used like (&mut s).
- * Mutable references big restriction is that you cannot create 2 mutable references to it.
- *
- * ... look up data races...
- *
- * - At any given time, you can have either one mutable reference or any number of immutable references.
- * - References must always be valid.
-*/
-
-/**
- * Ownership, borrowing and slices ensure memory safety at compile time.
- */
-
 // theme is a reference to a ColorfulTheme
 fn prompt_username(theme: &ColorfulTheme) -> String {
     Input::with_theme(theme)
@@ -136,20 +97,6 @@ fn prompt_username(theme: &ColorfulTheme) -> String {
         .interact_text()
         .unwrap()
 }
-
-/**
- * ------------- Iterator Adaptors -------------
- * A 'map' is an iterator adaptor.
- * It does not consume the iterator.
- * It produces different iterators by changing some aspect of the original iterator.
- * It returns a new iterator that produces the modified items.
- * It's closure creates a new iterator.
- *
- * An iterator adaptor is 'lazy' and _needs_ to be consumed.
- * To consume the iterator, call the 'collect' method.
- * The 'collect' method consumes the iterator and collects
- * the values into a collection data type.
- */
 
 fn prompt_repos_to_clone(theme: &ColorfulTheme, repo_names: &Vec<String>) -> Vec<usize> {
     MultiSelect::with_theme(theme)
