@@ -4,6 +4,7 @@
     "dialoguer",
     "exitcode",
     "NOUSER",
+    "pathbuf",
     "reqwest",
     "rustfmt",
     "thiserror"
