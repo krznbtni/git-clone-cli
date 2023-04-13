@@ -13,11 +13,6 @@ mod validation;
 use console::Style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
 
-#[allow(dead_code)]
-fn remove_whitespace(s: &str) -> String {
-    s.split_whitespace().collect()
-}
-
 fn prompt_username(theme: &ColorfulTheme) -> String {
     Input::with_theme(theme)
         .with_prompt("GitHub username")
