@@ -88,59 +88,12 @@ fn prompt_destination_dir(theme: &ColorfulTheme) -> String {
         .unwrap()
 }
 
-async fn init(theme: &ColorfulTheme, repos: &Result<Vec<GhRepoRes>, reqwest::Error>) {
-    let mut repo_map: HashMap<String, String> = HashMap::new();
-    repo_map = match repos {
-        Err(..) => panic!("dsads"),
-        Ok(x) => x
-            .iter()
-            .map(|ss| (ss.name.clone(), ss.clone_url.clone()))
-            .collect(),
-    };
-
-    let repo_names = repo_map.keys().cloned().collect::<Vec<String>>();
-
-    let repos_to_clone = MultiSelect::with_theme(theme)
-        .with_prompt("Pick repos to clone")
-        .items(&repo_names[..])
-        .interact()
-        .unwrap();
-
-    if repos_to_clone.is_empty() {
-        panic!("No repos selected. Exiting.")
-    }
-
-    let clone_to_dir: String = Input::with_theme(theme)
-        .with_prompt("Directory to clone to")
-        .validate_with({
-            move |input: &String| -> Result<(), &str> {
-                if validation::is_valid_directory(Path::new(input)) {
-                    Ok(())
-                } else {
-                    Err("Invalid path.")
-                }
-            }
-        })
-        .default(".".to_string())
-        .interact_text()
-        .unwrap();
-
-    let proper_clone_to_dir = PathBuf::from(&clone_to_dir);
-
-    for repo in repos_to_clone {
-        let repo_name = &repo_names[repo];
-
-        match repo_map.get(repo_name) {
-            Some(clone_url) => {
-                Command::new("git")
-                    .args(["clone", clone_url])
-                    .current_dir(&proper_clone_to_dir)
-                    .spawn()
-                    .expect("Failed to clone");
-            }
-            None => println!("Filler"),
-        }
-    }
+fn git_clone(clone_url: &str, destination_dir: &PathBuf) {
+    Command::new("git")
+        .args(["clone", clone_url])
+        .current_dir(destination_dir)
+        .spawn()
+        .expect("Error: failed to clone");
 }
 
 #[tokio::main]
@@ -165,6 +118,14 @@ async fn main() {
     let selected_repos = prompt_repos_to_clone(&theme, &repo_names);
     let destination_dir = prompt_destination_dir(&theme);
     let destination_dir_pathbuf = PathBuf::from(&destination_dir);
+
+    for selected_repo in selected_repos {
+        let repo_name = &repo_names[selected_repo];
+
+        if let Some(clone_url) = repo_map.get(repo_name) {
+            git_clone(&clone_url, &destination_dir_pathbuf)
+        }
+    }
 
     std::process::exit(exitcode::OK)
 }
