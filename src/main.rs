@@ -1,55 +1,21 @@
 /// Internal (standard)
 use std::collections::HashMap;
-use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 
 /// Mine
 mod exitcode;
+mod validation;
 
 /// External (not mine)
 use console::Style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect};
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 #[allow(dead_code)]
 fn remove_whitespace(s: &str) -> String {
     s.split_whitespace().collect()
-}
-
-fn is_valid_username(username: &str) -> bool {
-    // r: a raw string.
-    // A raw string is just like a regular string,
-    // except it does not process any escape sequences.
-    // For example, "\\d" is the same expression as r"\d".
-    let re = Regex::new(r"^[0-9A-Za-z_.-]+$").unwrap();
-    re.is_match(username)
-}
-
-#[test]
-fn t_is_valid_username() {
-    assert!(is_valid_username("0valid_.-"));
-    assert!(!is_valid_username(" invalid_.-/¤"));
-}
-
-fn is_valid_directory(path: &Path) -> bool {
-    match fs::metadata(path) {
-        Err(_) => false,
-        Ok(res) => res.is_dir(),
-    }
-}
-
-#[test]
-fn t_is_valid_directory() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = assert_fs::TempDir::new()?;
-    assert!(is_valid_directory(dir.path()));
-
-    let file = assert_fs::NamedTempFile::new("temp-file.txt")?;
-    assert!(!is_valid_directory(file.path()));
-
-    Ok(())
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -87,7 +53,7 @@ fn prompt_username(theme: &ColorfulTheme) -> String {
         .with_prompt("GitHub username")
         .validate_with({
             move |input: &String| -> Result<(), &str> {
-                if is_valid_username(input) {
+                if validation::is_valid_username(input) {
                     Ok(())
                 } else {
                     Err("Invalid username.")
@@ -132,7 +98,7 @@ async fn init(theme: &ColorfulTheme, repos: &Result<Vec<GhRepoRes>, reqwest::Err
         .with_prompt("Directory to clone to")
         .validate_with({
             move |input: &String| -> Result<(), &str> {
-                if is_valid_directory(Path::new(input)) {
+                if validation::is_valid_directory(Path::new(input)) {
                     Ok(())
                 } else {
                     Err("Invalid path.")
